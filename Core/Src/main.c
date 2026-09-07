@@ -37,7 +37,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define dormir 1
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -109,14 +109,16 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-
+  uint32_t lastTick = 0;
+  uint8_t boolarray=0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  uint32_t lastTick = 0;
+
   while (1)
   {
+	  boolarray&=!dormir; //si nadie cambia la bandera deberia ir a dormir (pendiente)
 	  LL_GPIO_SetOutputPin(LED_GPIO_Port,LED_Pin);
 	  LL_mDelay(500);
 	  //LL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
@@ -126,6 +128,7 @@ int main(void)
     /* USER CODE BEGIN 3 */
 //	  if ((uwTick - lastTick) >= 10) {
 //		  lastTick = uwTick; // Guardamos el tiempo actual
+//	  	  boolarray|=dormir; //Levantamos bandera de ejecucion
 //	  }
   }
   /* USER CODE END 3 */
