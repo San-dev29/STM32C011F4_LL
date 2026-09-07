@@ -38,6 +38,12 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define dormir 1
+// Constantes de calibración en System Memory
+#define TS_CAL1   (*((uint16_t*)0x1FFFF7B8)) // @30°C
+#define TS_CAL2   (*((uint16_t*)0x1FFFF7C2)) // @110°C
+#define TEMP30    30.0f
+#define TEMP110   110.0f
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -49,12 +55,12 @@
 
 /* USER CODE BEGIN PV */
 volatile uint32_t uwTick;
+uint16_t raw_temp;
+uint16_t raw_ch5;
+float temperature;
 
 /* USER CODE END PV */
-/* External variables --------------------------------------------------------*/
 
-/* USER CODE BEGIN EV */
-/* USER CODE END EV */
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
@@ -115,7 +121,16 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-
+//  // Habilitar sensor de temperatura interno
+//  LL_ADC_SetCommonPathInternalCh(__LL_ADC_COMMON_INSTANCE(ADC1),
+//                                 LL_ADC_PATH_INTERNAL_TEMPSENSOR);
+//
+//  // Seleccionar canal de temperatura interna
+//  LL_ADC_REG_SetSequencerRanks(ADC1, LL_ADC_REG_RANK_1,
+//                               LL_ADC_CHANNEL_TEMPSENSOR);
+//  // Seleccionar canal 5
+//  LL_ADC_REG_SetSequencerRanks(ADC1, LL_ADC_REG_RANK_2,
+//                               LL_ADC_CHANNEL_5);
   while (1)
   {
 	  boolarray&=!dormir; //si nadie cambia la bandera deberia ir a dormir (pendiente)
@@ -125,11 +140,29 @@ int main(void)
 	  LL_GPIO_ResetOutputPin(LED_GPIO_Port, LED_Pin);
 	  LL_mDelay(500);
     /* USER CODE END WHILE */
+
     /* USER CODE BEGIN 3 */
-//	  if ((uwTick - lastTick) >= 10) {
-//		  lastTick = uwTick; // Guardamos el tiempo actual
-//	  	  boolarray|=dormir; //Levantamos bandera de ejecucion
-//	  }
+	  if ((uwTick - lastTick) >= 10) {
+		  lastTick = uwTick; // Guardamos el tiempo actual
+	  	  boolarray|=dormir; //Levantamos bandera de ejecucion
+	  	  //Leemos el ADC
+	  	// Iniciar conversión
+	  	LL_ADC_ClearFlag_EOC(ADC1);
+	  	LL_ADC_REG_StartConversion(ADC1);
+
+	  	// --- Leer temperatura interna ---
+	  	while(!LL_ADC_IsActiveFlag_EOC(ADC1));
+	  	raw_temp = LL_ADC_REG_ReadConversionData12(ADC1);
+	  	LL_ADC_ClearFlag_EOC(ADC1);
+	  	// --- Convertir Temperatura interna
+	  	temperature = ((float)(raw_temp - TS_CAL1)) *
+	  	                    (TEMP110 - TEMP30) /
+	  	                    (TS_CAL2 - TS_CAL1) + TEMP30;
+	  	// --- Leer canal 5 ---
+	  	while(!LL_ADC_IsActiveFlag_EOC(ADC1));
+	  	raw_ch5 = LL_ADC_REG_ReadConversionData12(ADC1);
+	  	LL_ADC_ClearFlag_EOC(ADC1);
+	  }
   }
   /* USER CODE END 3 */
 }
