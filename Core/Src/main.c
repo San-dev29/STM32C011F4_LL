@@ -120,16 +120,14 @@ int main(void)
   {
 	  boolarray&=!dormir; //si nadie cambia la bandera deberia ir a dormir (pendiente)
 	  LL_GPIO_SetOutputPin(LED_GPIO_Port,LED_Pin);
+	  LL_TIM_OC_SetCompareCH1(TIM1, 65535);   // duty = valor entre 0 y ARR
 	  LL_mDelay(500);
 	  //LL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 	  LL_GPIO_ResetOutputPin(LED_GPIO_Port, LED_Pin);
+	  LL_TIM_OC_SetCompareCH1(TIM1, 32768);
 	  LL_mDelay(500);
     /* USER CODE END WHILE */
     /* USER CODE BEGIN 3 */
-//	  if ((uwTick - lastTick) >= 10) {
-//		  lastTick = uwTick; // Guardamos el tiempo actual
-//	  	  boolarray|=dormir; //Levantamos bandera de ejecucion
-//	  }
   }
   /* USER CODE END 3 */
 }
